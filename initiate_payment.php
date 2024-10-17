@@ -28,7 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $SECRETKEY = "ECC4E54DBA738857B84A7EBC6B5DC7187B8DA68750E88AB53AAA41F548D6F2D9";
     $MERCHANTID ="JT01";
-    $currencyCode = "SGD";
+    $currencyCode = "NPR";
 
     $payload = [
         "merchantID" => $MERCHANTID,
