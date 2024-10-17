@@ -15,6 +15,7 @@ function base64url_decode($data)
 {
     return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT));
 }
+
 function base64UrlDecode($input)
 {
     $remainder = strlen($input) % 4;
@@ -51,11 +52,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $signature = hash_hmac('sha256', $headerB64 . "." . $payloadB64, $SECRETKEY, true);
     $signatureB64 = base64url_encode($signature);
     $apiUrlProd = "https://pgw.2c2p.com/payment/4.3/paymentToken";
-    $apiUrl = "https://sandbox-pgw.2c2p.com/payment/4.3/paymentToken";
+    // Use this API for production
+    $apiUrl = "https://sandbox-pgw.2c2p.com/payment/4.3/paymentToken"; 
+
     $headers = [
         "Content-Type: application/json",
         "Accept: application/json"
     ];
+
     $jwt = $headerB64 . "." . $payloadB64 . "." . $signatureB64;
 
     $finalPayload = json_encode(["payload" => $jwt]);
@@ -63,43 +67,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $ch = curl_init($apiUrl);
     curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $finalPayload);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        "Content-Type: application/json",
-        "Accept: application/json"
-    ]);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
     $response = curl_exec($ch);
 
     if (curl_errno($ch)) {
-        echo 'cURL error: ' . curl_error($ch);
+        echo json_encode(['error' => 'cURL error: ' . curl_error($ch)]);
         exit;
     }
 
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close(handle: $ch);
+    curl_close($ch);
     $responseData = json_decode($response, true);
+    
     if (isset($responseData['payload'])) {
-
         $jwtParts = explode('.', $responseData["payload"]);
-
         $payload = base64UrlDecode($jwtParts[1]);
-
         $decodedPayload = json_decode($payload, true);
 
         if (isset($decodedPayload["webPaymentUrl"])) {
             $webPaymentUrl = $decodedPayload["webPaymentUrl"];
-            header("Location: $webPaymentUrl");
+            // Return the URL as a JSON response
+            echo json_encode(["redirect_url" => $webPaymentUrl]);
+        } else {
+            echo json_encode(['error' => 'Web payment URL not found.']);
         }
-    }else{
-        print_r($responseData);
-        header("Location: error.php");
-
+    } else {
+        echo json_encode(['error' => 'Invalid response data.', 'response' => $responseData]);
     }
-   
 } else {
-    echo "Invalid request method.";
-
+    echo json_encode(['error' => 'Invalid request method.']);
 }
-
 ?>
