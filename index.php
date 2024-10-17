@@ -65,10 +65,10 @@
             <input type="text" name="amount" value="1000">
 
             <label for="frontendReturnUrl">Frontend Return URL:</label>
-            <input type="text" name="frontendReturnUrl" value="http://localhost/payment/frontend_response.php">
+            <input type="text" name="frontendReturnUrl" value="http://localhost/frontend_response.php">
             
             <label for="backendReturnUrl">Backend Return URL:</label>
-            <input type="text" name="backendReturnUrl" value="http://localhost/payment/payment_callback.php">
+            <input type="text" name="backendReturnUrl" value="http://localhost/payment_callback.php">
             
       
             <input type="submit" value="Submit Payment (Sandbox)">
